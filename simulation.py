@@ -80,7 +80,7 @@ class Portfolio_managment:
         tf.compat.v1.keras.backend.set_session(sess)
         tf.compat.v1.keras.backend.set_learning_phase(1)
         return sess
-    def simulate(self,episode_depart,episode_fin):
+    def simulate(self,episode_depart,episode_fin,poids=None):
         """
             Méthode COEUR pour générer nos résultats.
             Input :
@@ -97,8 +97,12 @@ class Portfolio_managment:
         #Premiere boucle sur les épisodes (episode 1 à episode depoart + episode fin)
         for episode in tqdm(range(episode_depart+1,episode_depart+episode_fin+1)):
             #Chargement des poids existants si c'est possible
-            if not (self.mode == 'train' and episode ==episode_depart+1):
-                self.charger_poids(episode)
+            if poids != None and episode == episode_depart+1:
+                print('loading train weight')
+                self.agent.model.load_weights(poids)
+            else:
+                if not (self.mode == 'train' and episode ==episode_depart+1):
+                    self.charger_poids(episode)
             #On instancie à chaque nouvel épisode notre objet portefeuille
             Port = Portfeuille(self.symbols,self.period_start,self.period_end,'BTCUSD')
             #Préparation des états
@@ -129,7 +133,7 @@ class Portfolio_managment:
                 lst_returns.append(rendement_jour)
             #Calcul de différents indicateurs de performances
             SR = self.sharpe_ratio(lst_returns)
-            SR_BTC = self.sharpe_ratioBTC(lst_returns,Port.cash)
+            #SR_BTC = self.sharpe_ratioBTC(lst_returns,Port.cash)
             MD = self.maximum_drawdown(lst_returns)
             VOL = self.volatitile(lst_returns)
             #Nettoyage de notre buffer
@@ -137,7 +141,7 @@ class Portfolio_managment:
             self.episode_reward.append(cum_return)
             #Enregistrement des poids pour récupérations plus tard 
             self.enregistrer_poids(episode,Port,cum_return)
-            all_ += [(cum_return,SR,SR_BTC,MD,VOL)]
+            all_ += [(cum_return,SR,'SR_BTC',MD,VOL)]
         #on enregistre les performances dans un petit csv
         pd.DataFrame(all_,columns=['cum_return','SR','SR_BTC','MD','Vol']).to_csv(f'{root_path}/Resultats/perf.csv')
         return self.episode_reward,all_
@@ -205,8 +209,8 @@ class Portfolio_managment:
             os.mkdir(f'{root_path}/Resultats')
         if self.mode == "train":
             self.agent.model.save_weights(f"{root_path}/Poids/Agent_poids_{self.mode}_ep_{ep}.h5", overwrite=True)
-        elif self.mode =="valid":
-            self.agent.model.save_weights(f"{root_path}/Poids/Agent_poids_{self.mode}_ep_{ep-1}.h5", overwrite=True)
+        elif self.mode =="valid" or self.mode =="test":
+            self.agent.model.save_weights(f"{root_path}/Poids/Agent_poids_{self.mode}_ep_{ep}.h5", overwrite=True)
         filename = 'Portfolio_{}_{}_{}_{}_{}.pickle'.format(self.mode,str(Port.start)[:10],str(Port.end)[:10],'-'.join(Port.symbols), cum_return)
         with open("{}/Resultats/{}".format(root_path,filename),"wb") as outfile:
             pickle.dump(Port, outfile)

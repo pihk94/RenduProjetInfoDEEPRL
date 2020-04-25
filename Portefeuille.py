@@ -30,13 +30,13 @@ class Portfeuille:
         self.transition_factor = 0.002 #COUT DE TRANSACTION de BITFINEX
         #Chargement des données et on fait en sorte qu'on soit sure qu'on ast le même format pour tous
         for symbol in self.symbols + [cash]:
-            if not os.path.exists("Data/"+symbol+".csv"):
+            if not os.path.exists("Data/"+symbol+"_"+str(self.start)[:10]+"_"+str(self.end)[:10]+".csv"):
                 print('Collecte des donnéees pour ',symbol)
-                self.extract_hist_curr(symbol,"30m",10000,datetime.datetime(2014,1,1),datetime.datetime.now(),-1,False)
+                self.extract_hist_curr(symbol,"30m",10000,start,end + timedelta(days=1),-1,False)
             else:
                 #print(f"Présence des données historiques pour {symbol}")
                 self.make_format("Data/"+symbol+".csv")
-        self.cash = pd.read_csv('Data/'+cash+'.csv') #Obtenion de la monnaie de référence pour calculer les rendements
+        self.cash = pd.read_csv("Data/"+symbol+"_"+str(self.start)[:10]+"_"+str(self.end)[:10]+".csv") #Obtenion de la monnaie de référence pour calculer les rendements
         self.cash.time = pd.to_datetime(self.cash.time)
         self.cash = self.cash[(self.cash.time <= end) & (self.cash.time >= start+timedelta(minutes=60*24*7*2)+timedelta(minutes=30))]
         self.cash = (self.cash.open.shift(-1)/self.cash.open).fillna(1)
@@ -71,7 +71,7 @@ class Portfeuille:
         """
         full_df = pd.DataFrame()
         for symbol in symbols:
-            df = pd.read_csv("Data/"+symbol+".csv")
+            df = pd.read_csv("Data/"+symbol+"_"+str(self.start)[:10]+"_"+str(self.end)[:10]+".csv")
             df.time = pd.to_datetime(df.time)
             df = df[(df.time <= end) & (df.time >= start)]
             idx = df.time.values
@@ -96,11 +96,11 @@ class Portfeuille:
         """
         h_debut = datetime.datetime.now()
         start = time.mktime(start.timetuple())*1000
-        end = time.mktime(end.timetuple())*1000
+        end = time.mktime(end.timetuple())*1000 + 60*60*24
         data = []
         step = 1000*60*limit
         start = start - step
-        while start < end:
+        while start <= end:
             start +=step
             fin = start + step
             r = requests.get(f'https://api.bitfinex.com/v2/candles/trade:{interval}:t{symbol.upper()}/hist?limit={limit}&start={start}&end={end}&sort={sort}').json()
@@ -116,7 +116,7 @@ class Portfeuille:
         df.set_index('time', inplace=True)
         df.sort_index(inplace=True)
         df.index = pd.to_datetime(df.index, unit='ms')
-        df.to_csv('Data/{}.csv'.format(symbol))
+        df.to_csv('Data/{}_{}_{}.csv'.format(symbol,str(self.start)[:10],str(self.end)[:10]))
         print('Travail terminé, fichier enregistré : {}-{}.csv'.format(os.getcwd(),symbol))
         h_fin = datetime.datetime.now()
         print('Début : {} | Fin : {}.\nExécution {} minutes.'.format(h_debut,h_fin,-1*(time.mktime(h_debut.timetuple())-time.mktime(h_fin.timetuple()))/60))

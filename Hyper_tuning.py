@@ -34,20 +34,83 @@ import pandas as pd
 #             print('export 2')
 
 #Désormais que nous savons que nous allons choisir LR = 0.0002 et une window de 48 jours, tentons de tester différentes rewards functions
-START = datetime.datetime(2017,8,1,0,0)
-END = datetime.datetime(2018,7,31,0,0)
-SYMBOLS = ['ETHBTC','XRPBTC','EOSBTC','LTCBTC','ZECBTC','ETCBTC','XMRBTC'] #TOP DES CURRENCIES QUE L'ON A PU RECUPERER AISEMENT
-MODELS = ['CNN']
-REWARDS = ['avg_uniform_constant_rebalanced','SR','calmar_ratio','avg_log_cum_return']
+# START = datetime.datetime(2017,8,1,0,0)
+# END = datetime.datetime(2018,7,31,0,0)
+# SYMBOLS = ['ETHBTC','XRPBTC','EOSBTC','LTCBTC','ZECBTC','ETCBTC','XMRBTC'] #TOP DES CURRENCIES QUE L'ON A PU RECUPERER AISEMENT
+# MODELS = ['CNN']
+# REWARDS = ['avg_uniform_constant_rebalanced','SR','calmar_ratio','avg_log_cum_return']
+# lst = []
+# j=0
+# for model in MODELS:
+#     for reward in REWARDS:
+#         j+=1
+#         PF = Portfolio_managment(SYMBOLS,START,END,'train',WINDOW_SIZE=48,LR=0.0002,MODEL_NAME=model,reward=reward)
+#         episode_reward,all_ = PF.simulate(episode_depart=0,episode_fin=20)
+#         lst += [(model,reward,episode_reward)]
+#         exp1 = pd.DataFrame(lst,columns=['model','reward','epsiode_reward'])
+#         exp1.to_csv(f'tuning_{reward}.csv')
+#         exp2 =pd.DataFrame(all_,columns=['cum_rwd','SR','SR_BTC','MD','VOL'])
+#         exp2.to_csv(f'tuning_{model}_{j}_{reward}.csv')
+
+SYMBOLS = ['ETHBTC','XRPBTC','EOSBTC','ZECBTC','ETCBTC','XMRBTC']
+LR = [2e-5,9e-5,2e-4]
+# lst = []
+# j=0
+# STARTS = [datetime.datetime(2017,9,1),datetime.datetime(2019,9,1),datetime.datetime(2017,10,1),datetime.datetime(2018,4,15),datetime.datetime(2019,5,15)]
+# ENDS = [datetime.datetime(2017,10,1),datetime.datetime(2019,10,1),datetime.datetime(2017,11,1),datetime.datetime(2018,5,15),datetime.datetime(2019,6,15)]
+# for i in range(len(STARTS)):
+#     end = ENDS[i]
+#     start = STARTS[i]
+#     for lr in LR:
+#         j+=1
+#         PF = Portfolio_managment(SYMBOLS,start,end,'train',LR=lr)
+#         episode_reward,all_ = PF.simulate(episode_depart=0,episode_fin=50)
+#         lst += [(lr,episode_reward)]
+#         print('\nENDED\n')
+#         exp1 = pd.DataFrame(lst,columns=['lr','epsiode_reward'])
+#         exp1.to_csv('tuning_z.csv')
+#         print('export 1')
+#         exp2 =pd.DataFrame(all_,columns=['cum_rwd','SR','SR_BTC','MD','VOL'])
+#         exp2.to_csv(f'tuning_z_{lr}_{j}.csv')
+#         print('export 2')
+# lst = []
+# j=0
+# STARTS = [datetime.datetime(2017,9,1),datetime.datetime(2019,9,1),datetime.datetime(2017,10,1),datetime.datetime(2018,4,15),datetime.datetime(2019,5,15)]
+# ENDS = [datetime.datetime(2017,10,1),datetime.datetime(2019,10,1),datetime.datetime(2017,11,1),datetime.datetime(2018,5,15),datetime.datetime(2019,6,15)]
+# REWARDS = ['avg_uniform_constant_rebalanced','SR','avg_log_cum_return']
+# for i in range(len(STARTS)):
+#     end = ENDS[i]
+#     start = STARTS[i]
+#     for reward in REWARDS:
+#         j+=1
+#         PF = Portfolio_managment(SYMBOLS,start,end,'train',LR=9e-5,reward=reward)
+#         episode_reward,all_ = PF.simulate(episode_depart=0,episode_fin=50)
+#         lst += [(reward,episode_reward)]
+#         print('\nENDED\n')
+#         exp1 = pd.DataFrame(lst,columns=['reward','epsiode_reward'])
+#         exp1.to_csv('tuning_q2.csv')
+#         print('export 1')
+#         exp2 =pd.DataFrame(all_,columns=['cum_rwd','SR','SR_BTC','MD','VOL'])
+#         exp2.to_csv(f'tuning_q_{reward}_{j}.csv')
+#         print('export 2')
 lst = []
-j=0
-for model in MODELS:
+j=12
+STARTS = [datetime.datetime(2018,4,15),datetime.datetime(2019,5,15)]
+ENDS = [datetime.datetime(2018,5,15),datetime.datetime(2019,6,15)]
+REWARDS = ['avg_uniform_constant_rebalanced','SR','avg_log_cum_return']
+for i in range(len(STARTS)):
+    end = ENDS[i]
+    start = STARTS[i]
     for reward in REWARDS:
         j+=1
-        PF = Portfolio_managment(SYMBOLS,START,END,'train',WINDOW_SIZE=48,LR=0.0002,MODEL_NAME=model,reward=reward)
-        episode_reward,all_ = PF.simulate(episode_depart=0,episode_fin=20)
-        lst += [(model,reward,episode_reward)]
-        exp1 = pd.DataFrame(lst,columns=['model','reward','epsiode_reward'])
-        exp1.to_csv(f'tuning_{reward}.csv')
+        PF = Portfolio_managment(SYMBOLS,start,end,'train',LR=9e-5,reward=reward)
+        episode_reward,all_ = PF.simulate(episode_depart=0,episode_fin=50)
+        lst += [(reward,episode_reward)]
+        print('\nENDED\n')
+        exp1 = pd.DataFrame(lst,columns=['reward','epsiode_reward'])
+        exp1.to_csv('tuning_q2.csv')
+        print('export 1')
         exp2 =pd.DataFrame(all_,columns=['cum_rwd','SR','SR_BTC','MD','VOL'])
-        exp2.to_csv(f'tuning_{model}_{j}_{reward}.csv')
+        exp2.to_csv(f'tuning_q_{reward}_{j}.csv')
+        print('export 2')
+
